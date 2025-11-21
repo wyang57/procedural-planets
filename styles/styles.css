@@ -1,0 +1,33 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-image: url("../Images/space.jpg");
+  background-size: cover;
+  color:aliceblue
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.7);
+  padding: 10px 20px;
+  border-bottom: 2px solid #00ffff;
+}
+
+.burger {
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: rgb(104, 104, 104);
+  cursor: pointer;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.hidden {
+  display: none;
+}

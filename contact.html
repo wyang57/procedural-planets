@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - Procedural Planets</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header class="top-bar">
+    <h1>Procedural Planets</h1>
+    <button class="burger">&#9776;</button>
+    <nav class="nav-links hidden">
+      <a href="index.html">Home</a>
+      <a href="creator.html">Create Planet</a>
+      <a href="saved.html">Saved Planets</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Contact Us</h2>
+    <form id="contactForm">
+      <label for="name">Name:</label><br>
+      <input type="text" id="name" name="name" required><br><br>
+
+      <label for="email">Email:</label><br>
+      <input type="email" id="email" name="email" required><br><br>
+
+      <label for="message">Message:</label><br>
+      <textarea id="message" name="message" rows="5" required></textarea><br><br>
+
+      <button type="submit">Send</button>
+    </form>
+
+    <p id="formFeedback"></p>
+  </main>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+
+    const form = document.getElementById('contactForm');
+    const feedback = document.getElementById('formFeedback');
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault(); 
+      if (form.checkValidity()) {
+        feedback.textContent = "Thank you! Your message has been sent.";
+        feedback.style.color = "lightgreen";
+        form.reset();
+      } else {
+        feedback.textContent = "Please fill out all fields correctly.";
+        feedback.style.color = "red";
+      }
+    });
+  </script>
+</body>
+</html>
