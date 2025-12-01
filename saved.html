@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saved Planets - Procedural Planets</title>
+  <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+  <header class="top-bar">
+    <h1>Procedural Planets</h1>
+    <button class="burger">&#9776;</button>
+    <nav class="nav-links hidden nav-horizontal">
+      <a href="index.html">Home</a>
+      <a href="creator.html">Create Planet</a>
+      <a href="saved.html">Saved Planets</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="saved-main">
+    <div class="saved-container">
+      <h2>Your Saved Planets</h2>
+      
+      <div id="planetsGrid" class="planets-grid">
+        <!-- Planets will be loaded here by JavaScript -->
+      </div>
+      
+      <div id="emptyState" class="empty-state">
+        <p>No saved planets yet. <a href="creator.html">Create one now!</a></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal for viewing planet details -->
+  <div id="detailsModal" class="modal hidden">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="modalTitle">Planet Details</h2>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <img id="modalThumbnail" src="" alt="Planet" class="modal-thumbnail">
+        <div class="planet-config">
+          <p><strong>Created:</strong> <span id="modalCreated"></span></p>
+          <div class="config-grid">
+            <div class="config-item">
+              <label>Surface Density:</label>
+              <span id="configSurfaceDensity"></span>%
+            </div>
+            <div class="config-item">
+              <label>Ocean Coverage:</label>
+              <span id="configOceanCoverage"></span>%
+            </div>
+            <div class="config-item">
+              <label>Ice Coverage:</label>
+              <span id="configIceCoverage"></span>%
+            </div>
+            <div class="config-item">
+              <label>Cloud Coverage:</label>
+              <span id="configCloudCoverage"></span>%
+            </div>
+            <div class="config-item">
+              <label>Atmosphere Density:</label>
+              <span id="configAtmosphereDensity"></span>%
+            </div>
+            <div class="config-item">
+              <label>Volcanic Activity:</label>
+              <span id="configVolcanoCoverage"></span>%
+            </div>
+            <div class="config-item">
+              <label>Ring Visibility:</label>
+              <span id="configRingPresence"></span>%
+            </div>
+            <div class="config-item">
+              <label>Roughness:</label>
+              <span id="configRoughness"></span>%
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="downloadPlanetBtn" class="btn btn-primary">Download Image</button>
+        <button id="closeDetailsBtn" class="btn btn-cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="saved-planets.js"></script>
+  <script src="Java.js"></script>
+</body>
+</html>

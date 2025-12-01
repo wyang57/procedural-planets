@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Planet - Procedural Planets</title>
   <link rel="stylesheet" href="styles/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
   <header class="top-bar">
     <h1>Procedural Planets</h1>
     <button class="burger">&#9776;</button>
-    <nav class="nav-links hidden">
+    <nav class="nav-links hidden nav-horizontal">
       <a href="index.html">Home</a>
       <a href="creator.html">Create Planet</a>
       <a href="saved.html">Saved Planets</a>
@@ -19,10 +20,120 @@
     </nav>
   </header>
 
-  <main>
-    <h2>Create Your Planet</h2>
+  <main class="creator-main">
+    <div class="creator-container">
+      <!-- Left Control Panel -->
+      <aside class="control-panel">
+        <h2>Planet Creator</h2>
+        
+        <div class="control-group">
+          <h3>Surface Composition & Color</h3>
+          <div class="slider-group">
+            <label>Rock/Soil Color</label>
+            <input type="color" id="rockColor" value="#8B7355" class="color-picker">
+            <input type="range" id="surfaceDensity" min="0" max="100" value="50" class="slider">
+            <span>Coverage: <span id="surfaceDensityValue">50</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Ocean & Water</h3>
+          <div class="slider-group">
+            <label>Ocean Color</label>
+            <input type="color" id="oceanColor" value="#1E90FF" class="color-picker">
+            <input type="range" id="oceanCoverage" min="0" max="100" value="30" class="slider">
+            <span>Coverage: <span id="oceanCoverageValue">30</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Ice Caps & Glaciers</h3>
+          <div class="slider-group">
+            <label>Ice Coverage</label>
+            <input type="color" id="iceColor" value="#FFFFFF" class="color-picker">
+            <input type="range" id="iceCoverage" min="0" max="100" value="10" class="slider">
+            <span>Coverage: <span id="iceCoverageValue">10</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Atmosphere</h3>
+          <div class="slider-group">
+            <label>Atmosphere Color</label>
+            <input type="color" id="atmosphereColor" value="#87CEEB" class="color-picker">
+            <input type="range" id="atmosphereDensity" min="0" max="100" value="50" class="slider">
+            <span>Density: <span id="atmosphereDensityValue">50</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Clouds & Weather</h3>
+          <div class="slider-group">
+            <label>Cloud Coverage</label>
+            <input type="color" id="cloudColor" value="#FFFFFF" class="color-picker">
+            <input type="range" id="cloudCoverage" min="0" max="100" value="20" class="slider">
+            <span>Coverage: <span id="cloudCoverageValue">20</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Volcanoes & Lava</h3>
+          <div class="slider-group">
+            <label>Volcanic Activity</label>
+            <input type="color" id="lavaColor" value="#FF4500" class="color-picker">
+            <input type="range" id="volcanoCoverage" min="0" max="100" value="0" class="slider">
+            <span>Coverage: <span id="volcanoCoverageValue">0</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Rings</h3>
+          <div class="slider-group">
+            <label>Ring Color</label>
+            <input type="color" id="ringColor" value="#DAA520" class="color-picker">
+            <input type="range" id="ringPresence" min="0" max="100" value="0" class="slider">
+            <span>Visibility: <span id="ringPresenceValue">0</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Terrain Features</h3>
+          <div class="slider-group">
+            <label>Roughness</label>
+            <input type="range" id="roughness" min="0" max="100" value="30" class="slider">
+            <span>Level: <span id="roughnessValue">30</span>%</span>
+          </div>
+        </div>
+
+        <div class="control-actions">
+          <button id="savePlanetBtn" class="btn btn-save">Save Planet</button>
+          <button id="resetBtn" class="btn btn-reset">Reset</button>
+        </div>
+      </aside>
+
+      <!-- Canvas Area -->
+      <section class="canvas-section">
+        <div id="canvas-container" class="canvas-container"></div>
+        <div class="canvas-info">
+          <p>Use mouse to <strong>rotate</strong> • Scroll to <strong>zoom</strong></p>
+        </div>
+      </section>
+    </div>
   </main>
 
+  <!-- Modal for saving planet -->
+  <div id="saveModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Save Your Planet</h2>
+      <input type="text" id="planetName" placeholder="Enter planet name..." maxlength="50">
+      <div class="modal-actions">
+        <button id="confirmSaveBtn" class="btn btn-save">Save</button>
+        <button id="cancelSaveBtn" class="btn btn-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="planet-creator.js"></script>
   <script src="Java.js"></script>
 </body>
 </html>
