@@ -189,20 +189,70 @@ function generatePlanetTexture() {
     }
   }
   
-  // ===== STEP 3: OCEAN DEPTH VARIATION (oceanCoverage affects depth coloring) =====
-  if (oceanCoverage > 30) {
-    // Darken deeper oceans
-    const oceanDarkness = (oceanCoverage - 30) / 70;
+  // ===== STEP 3: OCEAN DEPTH VARIATION (oceanCoverage affects depth coloring and visibility) =====
+  // IMPORTANT: Only apply ocean effects where there is actually ocean (noiseValue <= landThreshold)
+  if (oceanCoverage > 0) {
     const oceanRgb = hexToRgb(oceanColor);
-    const darkOceanColor = `rgba(${Math.floor(oceanRgb.r * (1 - oceanDarkness * 0.3))},${Math.floor(oceanRgb.g * (1 - oceanDarkness * 0.3))},${Math.floor(oceanRgb.b * (1 - oceanDarkness * 0.5))},0.3)`;
     
-    ctx.fillStyle = darkOceanColor;
-    for (let y = 0; y < canvas.height; y += stepY) {
-      for (let x = 0; x < canvas.width; x += stepX) {
-        const noiseIdx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
-        const noiseValue = baseNoise[noiseIdx] || 0;
-        if (noiseValue <= landThreshold && Math.random() < oceanCoverage / 150) {
-          ctx.fillRect(x, y, stepX, stepY);
+    // Layer 1: Dark deep ocean trenches (adds depth to ocean only, not terrain)
+    if (oceanCoverage > 20) {
+      const deepOceanIntensity = Math.min(oceanCoverage / 100, 0.6);
+      const deepColor = `rgba(${Math.floor(oceanRgb.r * 0.5)},${Math.floor(oceanRgb.g * 0.5)},${Math.floor(oceanRgb.b * 0.9)},${deepOceanIntensity * 0.3})`;
+      ctx.fillStyle = deepColor;
+      
+      for (let y = 0; y < canvas.height; y += stepY) {
+        for (let x = 0; x < canvas.width; x += stepX) {
+          const noiseIdx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+          const noiseValue = baseNoise[noiseIdx] || 0;
+          
+          // ONLY render ocean depth where there is ocean (below landThreshold)
+          if (noiseValue <= landThreshold) {
+            // Use noise for ocean depth variation - creates swirling patterns
+            const depthVariation = (1 - noiseValue) * 0.4;
+            if (Math.random() < depthVariation) {
+              ctx.fillRect(x, y, stepX, stepY);
+            }
+          }
+        }
+      }
+    }
+    
+    // Layer 2: Smooth ocean with subtle sheen (rounded water appearance)
+    if (oceanCoverage > 30) {
+      const mediumOceanIntensity = Math.min((oceanCoverage - 30) / 70, 0.4);
+      const shineColor = `rgba(200,230,255,${mediumOceanIntensity * 0.2})`;
+      ctx.fillStyle = shineColor;
+      
+      // Smoother, larger patches for rounder water effect
+      for (let y = 0; y < canvas.height; y += stepY * 4) {
+        for (let x = 0; x < canvas.width; x += stepX * 4) {
+          const noiseIdx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+          const noiseValue = baseNoise[noiseIdx] || 0;
+          
+          // ONLY shine where there's ocean, and create flowing patterns
+          if (noiseValue <= landThreshold && (x + y) % 8 === 0) {
+            // Draw larger, rounder patches (2x2 instead of 1x1) for smoother water
+            ctx.fillRect(x, y, stepX * 2, stepY * 2);
+          }
+        }
+      }
+      
+      // Layer 3: Swirling ocean currents using sine/cos for flowing patterns
+      const swirl = `rgba(150,200,255,${mediumOceanIntensity * 0.1})`;
+      ctx.fillStyle = swirl;
+      
+      for (let y = 0; y < canvas.height; y += stepY * 6) {
+        for (let x = 0; x < canvas.width; x += stepX * 6) {
+          const noiseIdx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+          const noiseValue = baseNoise[noiseIdx] || 0;
+          
+          if (noiseValue <= landThreshold) {
+            // Create swirling pattern around terrain
+            const swirlPattern = Math.sin(x / 20) * Math.cos(y / 20);
+            if (swirlPattern > 0.3) {
+              ctx.fillRect(x, y, stepX * 3, stepY * 3);
+            }
+          }
         }
       }
     }
@@ -266,6 +316,47 @@ function generatePlanetTexture() {
   // ===== STEP 7: TERRAIN ROUGHNESS (fine detail noise) =====
   if (roughness > 0) {
     addNoise(ctx, canvas.width, canvas.height, roughness / 6);
+  }
+  
+  // ===== STEP 8: WEATHER STRIPES (atmospheric bands with blur effect) =====
+  // Create horizontal weather/atmospheric stripes for dynamic appearance
+  if (atmosphereDensity > 20 || cloudCoverage > 10) {
+    const stripeIntensity = Math.min((atmosphereDensity + cloudCoverage) / 200, 0.3);
+    
+    if (stripeIntensity > 0) {
+      // Multiple stripe bands at different heights with varying intensity
+      const stripeCount = Math.floor((atmosphereDensity + cloudCoverage) / 30);
+      
+      for (let s = 0; s < stripeCount; s++) {
+        const yPos = (canvas.height / (stripeCount + 1)) * (s + 1);
+        const stripeHeight = Math.max(2, Math.floor(canvas.height / (stripeCount * 3)));
+        const stripeColor = cloudColor || '#FFFFFF';
+        const stripeAlpha = (stripeIntensity * (1 - Math.abs(s - stripeCount / 2) / stripeCount)) * 0.2;
+        
+        ctx.fillStyle = hexToRgba(stripeColor, stripeAlpha);
+        
+        // Add subtle blur-like effect with gradient
+        const stripeGradient = ctx.createLinearGradient(0, yPos - stripeHeight, 0, yPos + stripeHeight);
+        stripeGradient.addColorStop(0, hexToRgba(stripeColor, 0));
+        stripeGradient.addColorStop(0.5, hexToRgba(stripeColor, stripeAlpha));
+        stripeGradient.addColorStop(1, hexToRgba(stripeColor, 0));
+        ctx.fillStyle = stripeGradient;
+        
+        ctx.fillRect(0, yPos - stripeHeight, canvas.width, stripeHeight * 2);
+      }
+      
+      // Apply directional blur effect by layering semi-transparent horizontal lines
+      ctx.globalAlpha = stripeIntensity * 0.15;
+      for (let y = 0; y < canvas.height; y += 8) {
+        ctx.strokeStyle = cloudColor || '#FFFFFF';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1.0;
+    }
   }
   
   return canvas;

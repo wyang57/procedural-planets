@@ -3,15 +3,366 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Planet - Procedural Planets</title>
-  <link rel="stylesheet" href="styles/styles.css">
+  <title>Planet Creator - Procedural Planets</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: radial-gradient(ellipse at bottom, #0d1b2a 0%, #000000 100%);
+      color: aliceblue;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    header {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 15px 30px;
+      border-bottom: 2px solid #00ffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+    
+    header h1 {
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      font-size: 1.8em;
+      margin: 0;
+    }
+    
+    .burger {
+      font-size: 24px;
+      background: none;
+      border: none;
+      color: #00ffff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .burger:hover {
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      transform: scale(1.1);
+    }
+    
+    .nav-links {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: rgba(0, 0, 0, 0.95);
+      border-left: 2px solid #00ffff;
+      border-bottom: 2px solid #00ffff;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+      border-radius: 0 0 0 10px;
+      min-width: 250px;
+      z-index: 101;
+      backdrop-filter: blur(10px);
+    }
+    
+    .nav-links a {
+      color: aliceblue;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .nav-links a:last-child {
+      border-bottom: none;
+    }
+    
+    .nav-links a:hover {
+      background-color: rgba(0, 255, 255, 0.2);
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    .creator-container {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+      min-height: calc(100vh - 80px);
+    }
+    
+    .control-panel {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 320px;
+      height: calc(100vh - 120px);
+      overflow-y: auto;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+    
+    .control-panel h2 {
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 1.5em;
+    }
+    
+    .control-group {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+    
+    .control-group h3 {
+      color: #00ff00;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .slider-group label {
+      color: #adf;
+      font-size: 0.85em;
+      font-weight: bold;
+    }
+    
+    .color-picker {
+      width: 100%;
+      height: 40px;
+      border: 2px solid #00ffff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .color-picker:hover {
+      box-shadow: 0 0 15px #00ffff;
+    }
+    
+    .slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: linear-gradient(to right, #1a4d4d, #00ffff);
+      outline: none;
+      cursor: pointer;
+    }
+    
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00ffff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00ffff;
+    }
+    
+    .slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00ffff;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 10px #00ffff;
+    }
+    
+    .slider-value {
+      font-size: 0.85em;
+      color: #adf;
+      text-align: right;
+    }
+    
+    .control-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid #00ffff;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #00ffff;
+      background: rgba(0, 255, 255, 0.1);
+      color: #00ffff;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      font-size: 0.85em;
+    }
+    
+    .btn:hover {
+      background: rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 15px #00ffff;
+      transform: translateY(-2px);
+    }
+    
+    .btn-save {
+      background: rgba(0, 200, 100, 0.15);
+      border-color: #00ff00;
+      color: #00ff00;
+    }
+    
+    .btn-save:hover {
+      background: rgba(0, 200, 100, 0.4);
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .btn-reset {
+      background: rgba(200, 0, 0, 0.15);
+      border-color: #ff4444;
+      color: #ff4444;
+    }
+    
+    .btn-reset:hover {
+      background: rgba(200, 0, 0, 0.4);
+      box-shadow: 0 0 15px #ff4444;
+    }
+    
+    .canvas-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .canvas-container {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      position: relative;
+      min-height: 500px;
+    }
+    
+    .canvas-info {
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.9em;
+      color: #adf;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    }
+    
+    .modal-content h2 {
+      color: #00ffff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 255, 255, 0.1);
+      border: 2px solid #00ffff;
+      border-radius: 5px;
+      color: aliceblue;
+      font-size: 1em;
+      margin-bottom: 20px;
+    }
+    
+    .modal-content input:focus {
+      outline: none;
+      box-shadow: 0 0 15px #00ffff;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .control-panel::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .control-panel::-webkit-scrollbar-track {
+      background: rgba(0, 255, 255, 0.1);
+    }
+    
+    .control-panel::-webkit-scrollbar-thumb {
+      background: #00ffff;
+      border-radius: 4px;
+    }
+    
+    @media (max-width: 1024px) {
+      .creator-container {
+        flex-direction: column;
+      }
+      
+      .control-panel {
+        width: 100%;
+        height: auto;
+        max-height: 400px;
+      }
+      
+      .canvas-container {
+        min-height: 400px;
+      }
+    }
+  </style>
 </head>
 <body>
   <header class="top-bar">
-    <h1>Procedural Planets</h1>
-    <button class="burger">&#9776;</button>
-    <nav class="nav-links hidden nav-horizontal">
+    <h1>🌍 Procedural Planet Creator</h1>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="site-nav">&#9776;</button>
+    <nav id="site-nav" class="nav-links hidden" role="navigation">
       <a href="index.html">Home</a>
       <a href="creator.html">Create Planet</a>
       <a href="saved.html">Saved Planets</a>
@@ -20,120 +371,1110 @@
     </nav>
   </header>
 
-  <main class="creator-main">
-    <div class="creator-container">
-      <!-- Left Control Panel -->
-      <aside class="control-panel">
-        <h2>Planet Creator</h2>
-        
-        <div class="control-group">
-          <h3>Surface Composition & Color</h3>
-          <div class="slider-group">
-            <label>Rock/Soil Color</label>
-            <input type="color" id="rockColor" value="#8B7355" class="color-picker">
-            <input type="range" id="surfaceDensity" min="0" max="100" value="50" class="slider">
-            <span>Coverage: <span id="surfaceDensityValue">50</span>%</span>
-          </div>
+  <div class="creator-container">
+    <aside class="control-panel">
+      <h2>Controls</h2>
+      
+      <div class="control-group">
+        <h3>🪨 Surface</h3>
+        <div class="slider-group">
+          <label>Rock/Soil Color</label>
+          <input type="color" id="rockColor" value="#8B7355" class="color-picker">
+          <input type="range" id="surfaceDensity" min="0" max="100" value="50" class="slider">
+          <span class="slider-value">Coverage: <span id="surfaceDensityValue">50</span>%</span>
         </div>
+      </div>
 
-        <div class="control-group">
-          <h3>Ocean & Water</h3>
-          <div class="slider-group">
-            <label>Ocean Color</label>
-            <input type="color" id="oceanColor" value="#1E90FF" class="color-picker">
-            <input type="range" id="oceanCoverage" min="0" max="100" value="30" class="slider">
-            <span>Coverage: <span id="oceanCoverageValue">30</span>%</span>
-          </div>
+      <div class="control-group">
+        <h3>🌊 Ocean</h3>
+        <div class="slider-group">
+          <label>Water Color</label>
+          <input type="color" id="oceanColor" value="#1E90FF" class="color-picker">
+          <input type="range" id="oceanCoverage" min="0" max="100" value="30" class="slider">
+          <span class="slider-value">Coverage: <span id="oceanCoverageValue">30</span>%</span>
         </div>
+      </div>
 
-        <div class="control-group">
-          <h3>Ice Caps & Glaciers</h3>
-          <div class="slider-group">
-            <label>Ice Coverage</label>
-            <input type="color" id="iceColor" value="#FFFFFF" class="color-picker">
-            <input type="range" id="iceCoverage" min="0" max="100" value="10" class="slider">
-            <span>Coverage: <span id="iceCoverageValue">10</span>%</span>
-          </div>
+      <div class="control-group">
+        <h3>❄️ Ice Caps</h3>
+        <div class="slider-group">
+          <label>Ice Color</label>
+          <input type="color" id="iceColor" value="#FFFFFF" class="color-picker">
+          <input type="range" id="iceCoverage" min="0" max="100" value="10" class="slider">
+          <span class="slider-value">Coverage: <span id="iceCoverageValue">10</span>%</span>
         </div>
+      </div>
 
-        <div class="control-group">
-          <h3>Atmosphere</h3>
-          <div class="slider-group">
-            <label>Atmosphere Color</label>
-            <input type="color" id="atmosphereColor" value="#87CEEB" class="color-picker">
-            <input type="range" id="atmosphereDensity" min="0" max="100" value="50" class="slider">
-            <span>Density: <span id="atmosphereDensityValue">50</span>%</span>
-          </div>
+      <div class="control-group">
+        <h3>🌫️ Atmosphere</h3>
+        <div class="slider-group">
+          <label>Atmosphere Color</label>
+          <input type="color" id="atmosphereColor" value="#87CEEB" class="color-picker">
+          <input type="range" id="atmosphereDensity" min="0" max="100" value="50" class="slider">
+          <span class="slider-value">Density: <span id="atmosphereDensityValue">50</span>%</span>
         </div>
+      </div>
 
-        <div class="control-group">
-          <h3>Clouds & Weather</h3>
-          <div class="slider-group">
-            <label>Cloud Coverage</label>
-            <input type="color" id="cloudColor" value="#FFFFFF" class="color-picker">
-            <input type="range" id="cloudCoverage" min="0" max="100" value="20" class="slider">
-            <span>Coverage: <span id="cloudCoverageValue">20</span>%</span>
-          </div>
+      <div class="control-group">
+        <h3>☁️ Clouds</h3>
+        <div class="slider-group">
+          <label>Cloud Color</label>
+          <input type="color" id="cloudColor" value="#FFFFFF" class="color-picker">
+          <input type="range" id="cloudCoverage" min="0" max="100" value="20" class="slider">
+          <span class="slider-value">Coverage: <span id="cloudCoverageValue">20</span>%</span>
         </div>
+      </div>
 
-        <div class="control-group">
-          <h3>Volcanoes & Lava</h3>
-          <div class="slider-group">
-            <label>Volcanic Activity</label>
-            <input type="color" id="lavaColor" value="#FF4500" class="color-picker">
-            <input type="range" id="volcanoCoverage" min="0" max="100" value="0" class="slider">
-            <span>Coverage: <span id="volcanoCoverageValue">0</span>%</span>
-          </div>
+      <div class="control-group">
+        <h3>🌋 Volcanoes</h3>
+        <div class="slider-group">
+          <label>Lava Color</label>
+          <input type="color" id="lavaColor" value="#FF4500" class="color-picker">
+          <input type="range" id="volcanoCoverage" min="0" max="100" value="0" class="slider">
+          <span class="slider-value">Activity: <span id="volcanoCoverageValue">0</span>%</span>
         </div>
+      </div>
 
-        <div class="control-group">
-          <h3>Rings</h3>
-          <div class="slider-group">
-            <label>Ring Color</label>
-            <input type="color" id="ringColor" value="#DAA520" class="color-picker">
-            <input type="range" id="ringPresence" min="0" max="100" value="0" class="slider">
-            <span>Visibility: <span id="ringPresenceValue">0</span>%</span>
-          </div>
+      <div class="control-group">
+        <h3>💍 Rings</h3>
+        <div class="slider-group">
+          <label>Ring Color</label>
+          <input type="color" id="ringColor" value="#DAA520" class="color-picker">
+          <input type="range" id="ringPresence" min="0" max="100" value="0" class="slider">
+          <span class="slider-value">Visibility: <span id="ringPresenceValue">0</span>%</span>
         </div>
+      </div>
 
-        <div class="control-group">
-          <h3>Terrain Features</h3>
-          <div class="slider-group">
-            <label>Roughness</label>
-            <input type="range" id="roughness" min="0" max="100" value="30" class="slider">
-            <span>Level: <span id="roughnessValue">30</span>%</span>
-          </div>
+      <div class="control-group">
+        <h3>⛰️ Terrain</h3>
+        <div class="slider-group">
+          <label>Surface Roughness</label>
+          <input type="range" id="roughness" min="0" max="100" value="30" class="slider">
+          <span class="slider-value">Detail: <span id="roughnessValue">30</span>%</span>
         </div>
+      </div>
 
-        <div class="control-actions">
-          <button id="savePlanetBtn" class="btn btn-save">Save Planet</button>
-          <button id="resetBtn" class="btn btn-reset">Reset</button>
-        </div>
-      </aside>
+      <div class="control-actions">
+        <button id="savePlanetBtn" class="btn btn-save">Save</button>
+        <button id="resetBtn" class="btn btn-reset">Reset</button>
+      </div>
+    </aside>
 
-      <!-- Canvas Area -->
-      <section class="canvas-section">
-        <div id="canvas-container" class="canvas-container"></div>
-        <div class="canvas-info">
-          <p>Use mouse to <strong>rotate</strong> • Scroll to <strong>zoom</strong></p>
-        </div>
-      </section>
-    </div>
-  </main>
+    <section class="canvas-section">
+      <div id="canvas-container" class="canvas-container"></div>
+      <div class="canvas-info">
+        <p><strong>Drag</strong> to rotate • <strong>Scroll</strong> to zoom</p>
+      </div>
+    </section>
+  </div>
 
-  <!-- Modal for saving planet -->
-  <div id="saveModal" class="modal hidden">
+  <div id="saveModal" class="modal">
     <div class="modal-content">
       <h2>Save Your Planet</h2>
       <input type="text" id="planetName" placeholder="Enter planet name..." maxlength="50">
       <div class="modal-actions">
         <button id="confirmSaveBtn" class="btn btn-save">Save</button>
-        <button id="cancelSaveBtn" class="btn btn-cancel">Cancel</button>
+        <button id="cancelSaveBtn" class="btn btn-reset">Cancel</button>
       </div>
     </div>
   </div>
 
-  <script src="planet-creator.js"></script>
+  <script>
+    // Three.js Planet Creator with Enhanced Texture Generation
+    let scene, camera, renderer, globe, atmosphereGlow, rings;
+    let planetState = {};
+    let isMouseDown = false;
+    let targetRotationX = 0;
+    let targetRotationY = 0;
+
+    function initThreeJS() {
+      const container = document.getElementById('canvas-container');
+      
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x000011);
+      scene.fog = new THREE.Fog(0x000011, 10, 100);
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+      camera.position.z = 3;
+      
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
+      
+      const sunLight = new THREE.PointLight(0xffffff, 2.5, 100);
+      sunLight.position.set(5, 5, 5);
+      sunLight.castShadow = true;
+      scene.add(sunLight);
+      
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      
+      const rimLight = new THREE.PointLight(0x00ffff, 1, 50);
+      rimLight.position.set(-5, -5, 5);
+      scene.add(rimLight);
+      
+      createGlobe();
+      setupMouseControls();
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function createGlobe() {
+      if (globe) {
+        scene.remove(globe);
+        globe.geometry.dispose();
+        globe.material.dispose();
+      }
+      if (atmosphereGlow) {
+        scene.remove(atmosphereGlow);
+        atmosphereGlow.geometry.dispose();
+        atmosphereGlow.material.dispose();
+      }
+      if (rings) {
+        scene.remove(rings);
+        rings.geometry.dispose();
+        rings.material.dispose();
+      }
+      
+      const geometry = new THREE.IcosahedronGeometry(1.5, 64);
+      const canvas = generatePlanetTexture();
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.magFilter = THREE.LinearFilter;
+      texture.minFilter = THREE.LinearMipMapLinearFilter;
+      
+      const material = new THREE.MeshPhongMaterial({
+        map: texture,
+        shininess: 10,
+        flatShading: false,
+        side: THREE.FrontSide,
+        castShadow: true,
+        receiveShadow: true
+      });
+      
+      globe = new THREE.Mesh(geometry, material);
+      globe.castShadow = true;
+      globe.receiveShadow = true;
+      scene.add(globe);
+      
+      createAtmosphere();
+      
+      if (planetState.ringPresence > 0) {
+        createRings();
+      }
+    }
+
+    function generatePlanetTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 2048;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      
+      const rockColor = document.getElementById('rockColor').value;
+      const oceanColor = document.getElementById('oceanColor').value;
+      const iceColor = document.getElementById('iceColor').value;
+      const cloudColor = document.getElementById('cloudColor').value;
+      const lavaColor = document.getElementById('lavaColor').value;
+      
+      const surfaceDensity = parseInt(document.getElementById('surfaceDensity').value);
+      const oceanCoverage = parseInt(document.getElementById('oceanCoverage').value);
+      const iceCoverage = parseInt(document.getElementById('iceCoverage').value);
+      const cloudCoverage = parseInt(document.getElementById('cloudCoverage').value);
+      const volcanoCoverage = parseInt(document.getElementById('volcanoCoverage').value);
+      const roughness = parseInt(document.getElementById('roughness').value);
+      
+      planetState = {
+        rockColor, oceanColor, iceColor, cloudColor, lavaColor,
+        surfaceDensity, oceanCoverage, iceCoverage, cloudCoverage, volcanoCoverage,
+        atmosphereColor: document.getElementById('atmosphereColor').value,
+        atmosphereDensity: parseInt(document.getElementById('atmosphereDensity').value),
+        roughness,
+        ringPresence: parseInt(document.getElementById('ringPresence').value),
+        ringColor: document.getElementById('ringColor').value
+      };
+      
+      const noiseScale = Math.max(0.5, (100 - roughness) / 20);
+      const baseNoise = generatePerlinNoise(canvas.width, canvas.height, noiseScale);
+      
+      // Base ocean
+      const oceanIntensity = oceanCoverage / 100;
+      ctx.fillStyle = oceanColor;
+      ctx.globalAlpha = Math.max(0.3, oceanIntensity);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1.0;
+      
+      // Land with ELEVATION-BASED terrain (mountains, valleys, craters)
+      // FIXED: Higher surface density = MORE land, not blue tint
+      const landThreshold = 0.8 - (surfaceDensity / 100) * 0.5; // Inverted: higher density = lower threshold = more land
+      const stepX = 4;
+      const stepY = 2;
+      
+      // Generate elevation map for terrain features
+      const elevationMap = [];
+      for (let y = 0; y < canvas.height; y += stepY) {
+        for (let x = 0; x < canvas.width; x += stepX) {
+          const noiseIdx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+          const noiseValue = baseNoise[noiseIdx] || 0;
+          
+          // Calculate base elevation
+          let elevation = noiseValue;
+          
+          // Add mountain ranges (high frequency peaks)
+          if (noiseValue > landThreshold + 0.15) {
+            const mountainNoise = Math.sin(x * 0.05) * Math.cos(y * 0.03) * 0.1;
+            elevation += Math.abs(mountainNoise);
+          }
+          
+          elevationMap.push(elevation);
+        }
+      }
+      
+      // Draw terrain based on elevation with proper shading
+      for (let y = 0; y < canvas.height; y += stepY) {
+        for (let x = 0; x < canvas.width; x += stepX) {
+          const idx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+          const elevation = elevationMap[idx] || 0;
+          
+          if (elevation > landThreshold) {
+            // Land - color based on elevation (NO BLUE TINT)
+            const heightAboveSea = elevation - landThreshold;
+            const heightFactor = heightAboveSea / (1 - landThreshold);
+            
+            const rgb = hexToRgb(rockColor);
+            
+            // Color purely based on rock color + brightness for elevation
+            let r, g, b;
+            
+            if (heightFactor < 0.3) {
+              // Lowlands - slightly darker base color
+              const darkness = (0.3 - heightFactor) * 0.3;
+              r = Math.max(0, rgb.r * (1 - darkness));
+              g = Math.max(0, rgb.g * (1 - darkness));
+              b = Math.max(0, rgb.b * (1 - darkness));
+            } else if (heightFactor < 0.7) {
+              // Mid-elevation - base color with slight brightness
+              const brightness = (heightFactor - 0.3) * 60;
+              r = Math.min(255, rgb.r + brightness);
+              g = Math.min(255, rgb.g + brightness);
+              b = Math.min(255, rgb.b + brightness);
+            } else {
+              // Mountains - much brighter, keeping color ratios
+              const brightness = (heightFactor - 0.7) * 120;
+              r = Math.min(255, rgb.r + brightness);
+              g = Math.min(255, rgb.g + brightness);
+              b = Math.min(255, rgb.b + brightness);
+            }
+            
+            ctx.fillStyle = `rgb(${Math.floor(r)},${Math.floor(g)},${Math.floor(b)})`;
+            ctx.fillRect(x, y, stepX, stepY);
+          }
+        }
+      }
+      
+      // Add CRATERS (impact sites that affect terrain) - ONLY ON LAND
+      if (roughness > 30) {
+        const craterCount = Math.floor((roughness / 100) * 25);
+        const rockRgb = hexToRgb(rockColor);
+        
+        for (let i = 0; i < craterCount; i++) {
+          const cx = Math.random() * canvas.width;
+          const cy = Math.random() * canvas.height;
+          const craterSize = 20 + Math.random() * 80;
+          
+          // Check if crater is on land
+          const idx = Math.floor(cy / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(cx / stepX);
+          const elevation = elevationMap[idx] || 0;
+          
+          // ONLY draw craters on land (elevation above threshold)
+          if (elevation > landThreshold) {
+            // Draw crater depression
+            const craterGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, craterSize);
+            craterGradient.addColorStop(0, `rgba(0,0,0,0.7)`); // Dark center
+            craterGradient.addColorStop(0.4, `rgba(${Math.floor(rockRgb.r * 0.4)},${Math.floor(rockRgb.g * 0.4)},${Math.floor(rockRgb.b * 0.4)},0.5)`);
+            craterGradient.addColorStop(0.7, `rgba(${rockRgb.r},${rockRgb.g},${rockRgb.b},0.2)`);
+            craterGradient.addColorStop(1, 'rgba(0,0,0,0)');
+            
+            ctx.fillStyle = craterGradient;
+            ctx.beginPath();
+            ctx.arc(cx, cy, craterSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Crater rim (lighter ring)
+            ctx.strokeStyle = `rgba(${Math.min(255, rockRgb.r + 80)},${Math.min(255, rockRgb.g + 80)},${Math.min(255, rockRgb.b + 60)},0.6)`;
+            ctx.lineWidth = 2 + Math.random() * 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, craterSize * 0.85, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
+      
+      // Add MOUNTAIN PEAKS as bright highlights - ONLY ON HIGH TERRAIN
+      if (roughness > 50) {
+        const peakCount = Math.floor((roughness / 100) * 30);
+        const rockRgb = hexToRgb(rockColor);
+        
+        for (let i = 0; i < peakCount; i++) {
+          const px = Math.random() * canvas.width;
+          const py = Math.random() * canvas.height;
+          const idx = Math.floor(py / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(px / stepX);
+          const elevation = elevationMap[idx] || 0;
+          
+          // Only draw peaks on HIGH elevation land
+          if (elevation > landThreshold + 0.25) {
+            const peakSize = 3 + Math.random() * 8;
+            
+            // Bright mountain peak - maintains rock color hue
+            const peakGradient = ctx.createRadialGradient(px, py, 0, px, py, peakSize);
+            peakGradient.addColorStop(0, `rgba(${Math.min(255, rockRgb.r + 100)},${Math.min(255, rockRgb.g + 100)},${Math.min(255, rockRgb.b + 80)},0.9)`);
+            peakGradient.addColorStop(1, 'rgba(255,255,255,0)');
+            
+            ctx.fillStyle = peakGradient;
+            ctx.beginPath();
+            ctx.arc(px, py, peakSize, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      
+      // Ocean depth with REALISTIC COASTLINES
+      if (oceanCoverage > 0) {
+        const oceanRgb = hexToRgb(oceanColor);
+        
+        // Deep ocean trenches and varying depth
+        if (oceanCoverage > 10) {
+          const deepIntensity = Math.min(oceanCoverage / 100, 1.0);
+          
+          for (let y = 0; y < canvas.height; y += stepY) {
+            for (let x = 0; x < canvas.width; x += stepX) {
+              const idx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+              const elevation = elevationMap[idx] || 0;
+              
+              // Only draw ocean where elevation is below land threshold
+              if (elevation <= landThreshold) {
+                // Depth increases the further below threshold
+                const depth = (landThreshold - elevation) / landThreshold;
+                const depthAlpha = depth * deepIntensity * 0.8;
+                
+                // Deep ocean is darker blue
+                ctx.fillStyle = `rgba(${Math.floor(oceanRgb.r * 0.3)},${Math.floor(oceanRgb.g * 0.4)},${Math.floor(oceanRgb.b * 0.9)},${depthAlpha})`;
+                ctx.fillRect(x, y, stepX, stepY);
+              }
+            }
+          }
+        }
+        
+        // Shallow water near coastlines (lighter blue/green)
+        if (oceanCoverage > 20) {
+          for (let y = 0; y < canvas.height; y += stepY) {
+            for (let x = 0; x < canvas.width; x += stepX) {
+              const idx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+              const elevation = elevationMap[idx] || 0;
+              
+              // Shallow water zone - just below land threshold
+              if (elevation > landThreshold - 0.1 && elevation <= landThreshold) {
+                const shallowFactor = (landThreshold - elevation) / 0.1;
+                const shallowAlpha = shallowFactor * 0.5;
+                
+                // Lighter, more turquoise shallow water
+                ctx.fillStyle = `rgba(${Math.min(255, oceanRgb.r + 80)},${Math.min(255, oceanRgb.g + 100)},${Math.min(255, oceanRgb.b + 80)},${shallowAlpha})`;
+                ctx.fillRect(x, y, stepX, stepY);
+              }
+            }
+          }
+        }
+        
+        // Ocean highlights and waves
+        if (oceanCoverage > 30) {
+          const highlightIntensity = (oceanCoverage - 30) / 70;
+          
+          for (let y = 0; y < canvas.height; y += stepY * 3) {
+            for (let x = 0; x < canvas.width; x += stepX * 4) {
+              const idx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+              const elevation = elevationMap[idx] || 0;
+              
+              // Only add highlights to deeper ocean areas
+              if (elevation <= landThreshold - 0.05) {
+                ctx.fillStyle = `rgba(255,255,255,${highlightIntensity * 0.25})`;
+                ctx.fillRect(x, y, stepX * 2, stepY);
+              }
+            }
+          }
+        }
+        
+        // Coastline foam/waves where land meets water
+        if (oceanCoverage > 15) {
+          ctx.strokeStyle = `rgba(255,255,255,0.4)`;
+          ctx.lineWidth = 1;
+          
+          for (let y = 0; y < canvas.height; y += stepY) {
+            for (let x = 0; x < canvas.width; x += stepX) {
+              const idx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+              const elevation = elevationMap[idx] || 0;
+              
+              // Check if this is near the coastline
+              const rightIdx = idx + 1;
+              const bottomIdx = idx + Math.ceil(canvas.width / stepX);
+              const rightElev = elevationMap[rightIdx] || 0;
+              const bottomElev = elevationMap[bottomIdx] || 0;
+              
+              // If current is water and neighbor is land, draw coastline
+              if (elevation <= landThreshold) {
+                if (rightElev > landThreshold || bottomElev > landThreshold) {
+                  if (Math.random() < 0.3) {
+                    ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.random() * 0.3})`;
+                    ctx.fillRect(x, y, stepX, stepY);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // Ice caps
+      if (iceCoverage > 0) {
+        const icePixels = Math.floor((canvas.height / 100) * (iceCoverage * 1.5));
+        const iceRgb = hexToRgb(iceColor);
+        
+        const northGradient = ctx.createLinearGradient(0, 0, 0, icePixels);
+        northGradient.addColorStop(0, iceColor);
+        northGradient.addColorStop(0.6, `rgba(${iceRgb.r},${iceRgb.g},${iceRgb.b},0.8)`);
+        northGradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = northGradient;
+        ctx.fillRect(0, 0, canvas.width, icePixels);
+        
+        if (iceCoverage > 20) {
+          ctx.fillStyle = `rgba(255,255,255,${iceCoverage / 200})`;
+          for (let i = 0; i < iceCoverage * 5; i++) {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * icePixels;
+            ctx.fillRect(x, y, 2 + Math.random() * 4, 1);
+          }
+        }
+        
+        const southGradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - icePixels);
+        southGradient.addColorStop(0, iceColor);
+        southGradient.addColorStop(0.6, `rgba(${iceRgb.r},${iceRgb.g},${iceRgb.b},0.8)`);
+        southGradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = southGradient;
+        ctx.fillRect(0, canvas.height - icePixels, canvas.width, icePixels);
+        
+        if (iceCoverage > 20) {
+          ctx.fillStyle = `rgba(255,255,255,${iceCoverage / 200})`;
+          for (let i = 0; i < iceCoverage * 5; i++) {
+            const x = Math.random() * canvas.width;
+            const y = canvas.height - Math.random() * icePixels;
+            ctx.fillRect(x, y, 2 + Math.random() * 4, 1);
+          }
+        }
+      }
+      
+      // Volcanoes
+      if (volcanoCoverage > 0) {
+        const volcanoCount = Math.floor((volcanoCoverage / 100) * 150);
+        const lavaRgb = hexToRgb(lavaColor);
+        
+        for (let i = 0; i < volcanoCount; i++) {
+          const x = Math.random() * canvas.width;
+          const y = (Math.random() * 0.6 + 0.2) * canvas.height;
+          const size = 10 + Math.random() * 60;
+          
+          const vgradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+          vgradient.addColorStop(0, lavaColor);
+          vgradient.addColorStop(0.3, `rgba(${lavaRgb.r},${Math.min(255, lavaRgb.g + 100)},0,0.9)`);
+          vgradient.addColorStop(0.6, 'rgba(255,100,0,0.5)');
+          vgradient.addColorStop(1, 'rgba(255,0,0,0)');
+          ctx.fillStyle = vgradient;
+          ctx.fillRect(x - size, y - size, size * 2, size * 2);
+          
+          if (volcanoCoverage > 50 && Math.random() < 0.3) {
+            ctx.strokeStyle = `rgba(${lavaRgb.r},100,0,0.6)`;
+            ctx.lineWidth = 2 + Math.random() * 3;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.quadraticCurveTo(
+              x + (Math.random() - 0.5) * 100,
+              y + Math.random() * 50,
+              x + (Math.random() - 0.5) * 150,
+              y + Math.random() * 80
+            );
+            ctx.stroke();
+          }
+        }
+      }
+      
+      // Clouds - Swirly and natural
+      if (cloudCoverage > 0) {
+        const cloudAlpha = Math.min(0.7, (cloudCoverage / 100) * 0.65);
+        const cloudRgb = hexToRgb(cloudColor);
+        
+        // Create swirly cloud patterns using noise-based approach
+        const cloudCount = Math.floor((cloudCoverage / 100) * 80);
+        
+        for (let i = 0; i < cloudCount; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const size = 30 + Math.random() * 100;
+          const opacity = cloudAlpha * (0.3 + Math.random() * 0.4);
+          
+          // Draw swirly, stretched clouds
+          ctx.globalAlpha = opacity;
+          drawSwirlyCloud(ctx, x, y, size, cloudColor);
+        }
+        ctx.globalAlpha = 1.0;
+        
+        // ATMOSPHERIC BANDS - Jupiter/Saturn-style stripes (ALWAYS visible if clouds > 20%)
+        if (cloudCoverage > 20) {
+          const bandCount = Math.floor(3 + (cloudCoverage / 25)); // 3-7 bands depending on coverage
+          
+          for (let b = 0; b < bandCount; b++) {
+            const yPos = (canvas.height / (bandCount + 1)) * (b + 1);
+            const bandHeight = 20 + Math.random() * 40;
+            const bandAlpha = Math.min(0.35, (cloudCoverage / 100) * 0.4);
+            
+            // Create wavy, natural band edges
+            const waveAmplitude = 8 + Math.random() * 12;
+            const waveFrequency = 0.01 + Math.random() * 0.01;
+            
+            // Draw band with gradient
+            const bandGradient = ctx.createLinearGradient(0, yPos - bandHeight, 0, yPos + bandHeight);
+            bandGradient.addColorStop(0, `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},0)`);
+            bandGradient.addColorStop(0.5, `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},${bandAlpha})`);
+            bandGradient.addColorStop(1, `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},0)`);
+            ctx.fillStyle = bandGradient;
+            
+            // Draw wavy band
+            ctx.beginPath();
+            ctx.moveTo(0, yPos - bandHeight);
+            
+            for (let x = 0; x <= canvas.width; x += 4) {
+              const wave = Math.sin(x * waveFrequency + b) * waveAmplitude;
+              ctx.lineTo(x, yPos - bandHeight + wave);
+            }
+            
+            for (let x = canvas.width; x >= 0; x -= 4) {
+              const wave = Math.sin(x * waveFrequency + b) * waveAmplitude;
+              ctx.lineTo(x, yPos + bandHeight + wave);
+            }
+            
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add turbulence detail to bands
+            if (cloudCoverage > 50) {
+              ctx.globalAlpha = bandAlpha * 0.5;
+              for (let t = 0; t < 20; t++) {
+                const tx = Math.random() * canvas.width;
+                const ty = yPos + (Math.random() - 0.5) * bandHeight * 2;
+                const tsize = 5 + Math.random() * 15;
+                
+                ctx.fillStyle = `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},${Math.random() * 0.3})`;
+                ctx.fillRect(tx, ty, tsize * 2, tsize * 0.3);
+              }
+              ctx.globalAlpha = 1.0;
+            }
+          }
+          
+          // Add subtle horizontal wind streaks
+          ctx.globalAlpha = cloudAlpha * 0.15;
+          for (let s = 0; s < cloudCoverage / 2; s++) {
+            const sy = Math.random() * canvas.height;
+            const swidth = 100 + Math.random() * 300;
+            const sheight = 1 + Math.random() * 2;
+            
+            ctx.fillStyle = cloudColor;
+            ctx.fillRect(Math.random() * canvas.width, sy, swidth, sheight);
+          }
+          ctx.globalAlpha = 1.0;
+        }
+      }
+      
+      // Roughness
+      if (roughness > 5) {
+        const noiseIntensity = roughness / 4;
+        addEnhancedNoise(ctx, canvas.width, canvas.height, noiseIntensity);
+        
+        if (roughness > 60) {
+          ctx.globalAlpha = (roughness - 60) / 100;
+          const rockRgb = hexToRgb(rockColor);
+          ctx.strokeStyle = `rgb(${Math.floor(rockRgb.r * 0.7)},${Math.floor(rockRgb.g * 0.7)},${Math.floor(rockRgb.b * 0.7)})`;
+          ctx.lineWidth = 1;
+          
+          for (let i = 0; i < roughness * 2; i++) {
+            const x1 = Math.random() * canvas.width;
+            const y1 = Math.random() * canvas.height;
+            const x2 = x1 + (Math.random() - 0.5) * 50;
+            const y2 = y1 + (Math.random() - 0.5) * 30;
+            
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1.0;
+        }
+      }
+      
+      return canvas;
+    }
+
+    function drawSwirlyCloud(ctx, x, y, size, color) {
+      const cloudRgb = hexToRgb(color);
+      
+      // Create stretched, swirly cloud formations
+      const segments = 5 + Math.floor(Math.random() * 4);
+      const rotation = Math.random() * Math.PI * 2;
+      const stretch = 2 + Math.random() * 2; // Horizontal stretching
+      
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.scale(stretch, 1);
+      
+      for (let i = 0; i < segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        const distance = size * (0.3 + Math.random() * 0.4);
+        const offsetX = Math.cos(angle) * distance;
+        const offsetY = Math.sin(angle) * distance;
+        const circleSize = size * (0.3 + Math.random() * 0.3);
+        
+        // Create soft, wispy gradient for each cloud puff
+        const gradient = ctx.createRadialGradient(
+          offsetX, offsetY, 0,
+          offsetX, offsetY, circleSize
+        );
+        
+        const centerAlpha = 0.6 + Math.random() * 0.3;
+        gradient.addColorStop(0, `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},${centerAlpha})`);
+        gradient.addColorStop(0.5, `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},${centerAlpha * 0.5})`);
+        gradient.addColorStop(1, `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},0)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(offsetX, offsetY, circleSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Add wispy tendrils for more natural look
+      if (Math.random() < 0.5) {
+        const tendrilCount = 2 + Math.floor(Math.random() * 3);
+        for (let t = 0; t < tendrilCount; t++) {
+          const angle = Math.random() * Math.PI * 2;
+          const length = size * (0.5 + Math.random() * 0.8);
+          
+          ctx.strokeStyle = `rgba(${cloudRgb.r},${cloudRgb.g},${cloudRgb.b},0.2)`;
+          ctx.lineWidth = 3 + Math.random() * 5;
+          ctx.lineCap = 'round';
+          
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(
+            Math.cos(angle) * length * 0.5 + (Math.random() - 0.5) * 20,
+            Math.sin(angle) * length * 0.5 + (Math.random() - 0.5) * 20,
+            Math.cos(angle) * length,
+            Math.sin(angle) * length
+          );
+          ctx.stroke();
+        }
+      }
+      
+      ctx.restore();
+    }
+
+    function addEnhancedNoise(ctx, width, height, intensity) {
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const noise = (Math.random() - 0.5) * intensity * 2;
+        const multiplier = 1 + (Math.random() - 0.5) * (intensity / 100);
+        
+        data[i] = Math.max(0, Math.min(255, data[i] * multiplier + noise));
+        data[i + 1] = Math.max(0, Math.min(255, data[i + 1] * multiplier + noise));
+        data[i + 2] = Math.max(0, Math.min(255, data[i + 2] * multiplier + noise));
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function generatePerlinNoise(width, height, scale) {
+      const noise = [];
+      const stepX = 4;
+      const stepY = 2;
+      const sampledWidth = Math.ceil(width / stepX);
+      const sampledHeight = Math.ceil(height / stepY);
+      
+      const gradients = [];
+      for (let i = 0; i < sampledWidth * sampledHeight; i++) {
+        gradients[i] = {
+          x: Math.cos(Math.random() * Math.PI * 2),
+          y: Math.sin(Math.random() * Math.PI * 2)
+        };
+      }
+      
+      for (let y = 0; y < height; y += stepY) {
+        for (let x = 0; x < width; x += stepX) {
+          let value = 0;
+          let amplitude = 1;
+          let frequency = 1;
+          let maxValue = 0;
+          
+          for (let octave = 0; octave < 4; octave++) {
+            const xi = Math.floor((x * frequency) / (stepX * scale)) % (sampledWidth - 1);
+            const yi = Math.floor((y * frequency) / (stepY * scale)) % (sampledHeight - 1);
+            
+            const xf = ((x * frequency) / (stepX * scale)) - Math.floor((x * frequency) / (stepX * scale));
+            const yf = ((y * frequency) / (stepY * scale)) - Math.floor((y * frequency) / (stepY * scale));
+            
+            const u = xf * xf * (3 - 2 * xf);
+            const v = yf * yf * (3 - 2 * yf);
+            
+            const idx1 = yi * sampledWidth + xi;
+            const idx2 = yi * sampledWidth + ((xi + 1) % sampledWidth);
+            const idx3 = ((yi + 1) % sampledHeight) * sampledWidth + xi;
+            const idx4 = ((yi + 1) % sampledHeight) * sampledWidth + ((xi + 1) % sampledWidth);
+            
+            const g1 = gradients[idx1 % gradients.length];
+            const g2 = gradients[idx2 % gradients.length];
+            const g3 = gradients[idx3 % gradients.length];
+            const g4 = gradients[idx4 % gradients.length];
+            
+            const d1 = g1.x * xf + g1.y * yf;
+            const d2 = g2.x * (xf - 1) + g2.y * yf;
+            const d3 = g3.x * xf + g3.y * (yf - 1);
+            const d4 = g4.x * (xf - 1) + g4.y * (yf - 1);
+            
+            const i1 = d1 * (1 - u) + d2 * u;
+            const i2 = d3 * (1 - u) + d4 * u;
+            const i = i1 * (1 - v) + i2 * v;
+            
+            value += i * amplitude;
+            maxValue += amplitude;
+            amplitude *= 0.5;
+            frequency *= 2;
+          }
+          
+          noise.push((value / maxValue + 1) / 2);
+        }
+      }
+      
+      return noise;
+    }
+
+    function createAtmosphere() {
+      const atmosphereColor = document.getElementById('atmosphereColor').value;
+      const atmosphereDensity = parseInt(document.getElementById('atmosphereDensity').value);
+      
+      const atmosphereGeometry = new THREE.IcosahedronGeometry(1.52, 64);
+      
+      const atmosphereCanvas = document.createElement('canvas');
+      atmosphereCanvas.width = 512;
+      atmosphereCanvas.height = 512;
+      const atmCtx = atmosphereCanvas.getContext('2d');
+      
+      const gradient = atmCtx.createRadialGradient(256, 256, 100, 256, 256, 256);
+      gradient.addColorStop(0, 'rgba(255,255,255,0)');
+      gradient.addColorStop(0.5, hexToRgba(atmosphereColor, atmosphereDensity / 200));
+      gradient.addColorStop(1, hexToRgba(atmosphereColor, atmosphereDensity / 100));
+      atmCtx.fillStyle = gradient;
+      atmCtx.fillRect(0, 0, 512, 512);
+      
+      const atmosphereTexture = new THREE.CanvasTexture(atmosphereCanvas);
+      
+      const atmosphereMaterial = new THREE.MeshPhongMaterial({
+        map: atmosphereTexture,
+        emissive: atmosphereColor,
+        emissiveIntensity: atmosphereDensity / 200,
+        transparent: true,
+        opacity: atmosphereDensity / 150,
+        side: THREE.BackSide,
+        depthWrite: false
+      });
+      
+      atmosphereGlow = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+      scene.add(atmosphereGlow);
+    }
+
+    function createRings() {
+      const ringColor = document.getElementById('ringColor').value;
+      const ringPresence = parseInt(document.getElementById('ringPresence').value);
+      
+      const ringGeometry = new THREE.TorusGeometry(2.2, 0.4, 2, 256);
+      const ringMaterial = new THREE.MeshPhongMaterial({
+        color: ringColor,
+        transparent: true,
+        opacity: ringPresence / 150,
+        emissive: ringColor,
+        emissiveIntensity: ringPresence / 300,
+        side: THREE.DoubleSide,
+        flatShading: false
+      });
+      
+      rings = new THREE.Mesh(ringGeometry, ringMaterial);
+      rings.castShadow = true;
+      rings.receiveShadow = true;
+      rings.rotation.x = Math.PI / 6;
+      
+      scene.add(rings);
+    }
+
+    function setupMouseControls() {
+      let mouseX = 0;
+      let mouseY = 0;
+      const container = document.getElementById('canvas-container');
+      
+      container.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+      
+      container.addEventListener('mousemove', (e) => {
+        if (isMouseDown && globe) {
+          const deltaX = e.clientX - mouseX;
+          const deltaY = e.clientY - mouseY;
+          
+          targetRotationY += deltaX * 0.01;
+          targetRotationX += deltaY * 0.01;
+          targetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetRotationX));
+          
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        }
+      });
+      
+      container.addEventListener('mouseup', () => {
+        isMouseDown = false;
+      });
+      
+      container.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+      });
+      
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isMouseDown = true;
+          mouseX = e.touches[0].clientX;
+          mouseY = e.touches[0].clientY;
+        }
+      });
+      
+      container.addEventListener('touchmove', (e) => {
+        if (isMouseDown && e.touches.length === 1 && globe) {
+          const deltaX = e.touches[0].clientX - mouseX;
+          const deltaY = e.touches[0].clientY - mouseY;
+          
+          targetRotationY += deltaX * 0.01;
+          targetRotationX += deltaY * 0.01;
+          targetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetRotationX));
+          
+          mouseX = e.touches[0].clientX;
+          mouseY = e.touches[0].clientY;
+        }
+      });
+      
+      container.addEventListener('touchend', () => {
+        isMouseDown = false;
+      });
+      
+      container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomSpeed = 0.3;
+        if (e.deltaY < 0) {
+          camera.position.z = Math.max(camera.position.z - zoomSpeed, 1);
+        } else {
+          camera.position.z = Math.min(camera.position.z + zoomSpeed, 8);
+        }
+      }, { passive: false });
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      if (globe) {
+        const easing = 0.08;
+        globe.rotation.y += (targetRotationY - globe.rotation.y) * easing;
+        globe.rotation.x += (targetRotationX - globe.rotation.x) * easing;
+        
+        if (!isMouseDown) {
+          targetRotationY += 0.001;
+        }
+        
+        if (atmosphereGlow) {
+          atmosphereGlow.rotation.copy(globe.rotation);
+        }
+        
+        if (rings) {
+          rings.rotation.x = Math.PI / 6 + globe.rotation.x * 0.3;
+          rings.rotation.y = globe.rotation.y;
+          rings.rotation.z = globe.rotation.z * 0.1;
+        }
+      }
+      
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    function setupControlListeners() {
+      const sliders = document.querySelectorAll('.slider');
+      const colorPickers = document.querySelectorAll('.color-picker');
+      
+      let debounceTimer;
+      const regenerateGlobe = () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          createGlobe();
+        }, 50);
+      };
+      
+      sliders.forEach(slider => {
+        slider.addEventListener('input', (e) => {
+          const valueSpan = document.getElementById(e.target.id + 'Value');
+          if (valueSpan) {
+            valueSpan.textContent = e.target.value;
+          }
+          regenerateGlobe();
+        });
+      });
+      
+      colorPickers.forEach(picker => {
+        picker.addEventListener('change', () => {
+          regenerateGlobe();
+        });
+      });
+      
+      document.getElementById('resetBtn').addEventListener('click', resetPlanet);
+      document.getElementById('savePlanetBtn').addEventListener('click', () => {
+        document.getElementById('saveModal').classList.add('show');
+        document.getElementById('planetName').focus();
+      });
+      
+      document.getElementById('cancelSaveBtn').addEventListener('click', () => {
+        document.getElementById('saveModal').classList.remove('show');
+      });
+      
+      document.getElementById('confirmSaveBtn').addEventListener('click', savePlanet);
+      
+      document.getElementById('planetName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          savePlanet();
+        }
+      });
+    }
+
+    function resetPlanet() {
+      const defaults = {
+        rockColor: '#8B7355',
+        surfaceDensity: '50',
+        oceanColor: '#1E90FF',
+        oceanCoverage: '30',
+        iceColor: '#FFFFFF',
+        iceCoverage: '10',
+        atmosphereColor: '#87CEEB',
+        atmosphereDensity: '50',
+        cloudColor: '#FFFFFF',
+        cloudCoverage: '20',
+        lavaColor: '#FF4500',
+        volcanoCoverage: '0',
+        ringColor: '#DAA520',
+        ringPresence: '0',
+        roughness: '30'
+      };
+      
+      Object.entries(defaults).forEach(([key, value]) => {
+        const element = document.getElementById(key);
+        if (element) {
+          element.value = value;
+          const valueSpan = document.getElementById(key + 'Value');
+          if (valueSpan) {
+            valueSpan.textContent = value;
+          }
+        }
+      });
+      
+      createGlobe();
+    }
+
+    function savePlanet() {
+      const planetName = document.getElementById('planetName').value.trim();
+      
+      if (!planetName) {
+        alert('Please enter a planet name');
+        return;
+      }
+      
+      try {
+        const canvas = renderer.domElement;
+        const imageData = canvas.toDataURL('image/png');
+        
+        const planet = {
+          id: Date.now(),
+          name: planetName,
+          created: new Date().toISOString(),
+          config: { ...planetState },
+          thumbnail: imageData
+        };
+        
+        let savedPlanets = JSON.parse(localStorage.getItem('savedPlanets') || '[]');
+        savedPlanets.push(planet);
+        localStorage.setItem('savedPlanets', JSON.stringify(savedPlanets));
+        
+        alert(`🌍 Planet "${planetName}" saved successfully!`);
+        document.getElementById('planetName').value = '';
+        document.getElementById('saveModal').classList.remove('show');
+        
+      } catch (error) {
+        console.error('Error saving planet:', error);
+        alert('Failed to save planet. Storage may be full.');
+      }
+    }
+
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return { r, g, b };
+    }
+
+    function hexToRgba(hex, alpha) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initThreeJS();
+      setupControlListeners();
+    });
+
+    // Toggle navigation
+    function toggleNav() {
+      const navLinks = document.getElementById('site-nav');
+      navLinks.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      const burger = document.querySelector('.burger');
+      const navLinks = document.getElementById('site-nav');
+      if (!burger.contains(e.target) && !navLinks.contains(e.target)) {
+        navLinks.classList.add('hidden');
+      }
+    });
+  </script>
   <script src="Java.js"></script>
 </body>
 </html>

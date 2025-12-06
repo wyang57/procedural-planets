@@ -9,8 +9,8 @@
 <body>
   <header class="top-bar">
     <h1>Procedural Planets</h1>
-    <button class="burger">&#9776;</button>
-    <nav class="nav-links hidden nav-horizontal">
+    <button class="burger" type="button" aria-expanded="false" aria-controls="site-nav">&#9776;</button>
+    <nav id="site-nav" class="nav-links hidden" role="navigation">
       <a href="index.html">Home</a>
       <a href="creator.html">Create Planet</a>
       <a href="saved.html">Saved Planets</a>
@@ -32,6 +32,10 @@
       </div>
     </div>
   </main>
+
+  <footer>
+    Made with ❤️ by DK
+  </footer>
 
   <!-- Modal for viewing planet details -->
   <div id="detailsModal" class="modal hidden">
@@ -88,6 +92,21 @@
   </div>
 
   <script src="saved-planets.js"></script>
+  <script src="Java.js"></script>
+  <script>
+    function toggleNav() {
+      const navLinks = document.getElementById('site-nav');
+      navLinks.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      const burger = document.querySelector('.burger');
+      const navLinks = document.getElementById('site-nav');
+      if (!burger.contains(e.target) && !navLinks.contains(e.target)) {
+        navLinks.classList.add('hidden');
+      }
+    });
+  </script>
   <script src="Java.js"></script>
 </body>
 </html>

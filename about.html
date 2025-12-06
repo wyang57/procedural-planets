@@ -5,12 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About - Procedural Planets</title>
   <link rel="stylesheet" href="styles/styles.css">
+  <style>
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      border: 1px solid #00ffff;
+    }
+    
+    h2 {
+      color: #00ffff;
+      margin-bottom: 20px;
+      font-size: 2.5em;
+    }
+    
+    h3 {
+      color: #00ff00;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+    }
+    
+    .content-section {
+      margin-bottom: 30px;
+      line-height: 1.8;
+      color: #e0e0e0;
+    }
+    
+    .creators {
+      background: rgba(0, 255, 255, 0.1);
+      padding: 20px;
+      border-left: 4px solid #00ffff;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    
+    .creator-name {
+      color: #00ffff;
+      font-weight: bold;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    
+    ul {
+      color: #e0e0e0;
+      margin-left: 20px;
+    }
+    
+    li {
+      margin: 10px 0;
+    }
+    
+    strong {
+      color: #00ff00;
+    }
+  </style>
 </head>
 <body>
   <header class="top-bar">
     <h1>Procedural Planets</h1>
-    <button class="burger">&#9776;</button>
-    <nav class="nav-links hidden">
+    <button class="burger" type="button" aria-expanded="false" aria-controls="site-nav">&#9776;</button>
+    <nav id="site-nav" class="nav-links hidden" role="navigation">
       <a href="index.html">Home</a>
       <a href="creator.html">Create Planet</a>
       <a href="saved.html">Saved Planets</a>
@@ -20,8 +77,93 @@
   </header>
 
   <main>
-    <h2>About Us</h2>
+    <h2>About Procedural Planets</h2>
+    
+    <div class="content-section">
+      <h3>Project Overview</h3>
+      <p>
+        <strong>Procedural Planets</strong> is an interactive web application that demonstrates the power of procedural generation, 
+        real-time 3D graphics, and interactive user interfaces. This project explores how mathematical algorithms can create 
+        infinite variety in planetary design, combining creative storytelling with cutting-edge web technologies.
+      </p>
+    </div>
+
+    <div class="content-section">
+      <h3>Project Goals</h3>
+      <ul>
+        <li><strong>Procedural Generation:</strong> Use sophisticated Perlin noise algorithms to create realistic, varied planetary surfaces with continents, oceans, ice caps, and atmospheric effects</li>
+        <li><strong>Interactive UI:</strong> Provide intuitive sliders and color pickers that allow users to design custom planets in real-time, seeing immediate visual feedback</li>
+        <li><strong>Storytelling:</strong> Enable users to create narratives around their planets—design a Mars-like desert world, an ice age snowball Earth, or an alien purple planet</li>
+        <li><strong>Web Excellence:</strong> Leverage Three.js for 3D rendering, WebGL for hardware acceleration, and modern JavaScript for responsive, performant experiences</li>
+      </ul>
+    </div>
+
+    <div class="content-section">
+      <h3>Key Features</h3>
+      <ul>
+        <li><strong>Real-time Planet Creation:</strong> 8 interactive sliders control different planetary features—surface composition, oceans, ice caps, atmosphere, clouds, volcanoes, rings, and terrain</li>
+        <li><strong>Sophisticated Procedural Noise:</strong> Multi-octave Perlin Fractional Brownian Motion (FBM) creates natural-looking continents and terrain variation</li>
+        <li><strong>3D Graphics:</strong> Three.js powered rendering with proper lighting, shadows, atmospheric effects, and smooth 60 FPS animation</li>
+        <li><strong>Persistent Storage:</strong> Save your creations to local storage with automatic PNG thumbnails for quick gallery previews</li>
+        <li><strong>Mobile Responsive:</strong> Full support for desktop, tablet, and mobile devices with adaptive layouts</li>
+        <li><strong>Color Customization:</strong> 15+ color pickers to craft your perfect planetary palette</li>
+      </ul>
+    </div>
+
+    <div class="creators">
+      <h3>Created By</h3>
+      <p>
+        <span class="creator-name">Daniel</span> & <span class="creator-name">Kalib</span>
+      </p>
+      <p style="font-size: 0.95em; margin-top: 10px; color: #a0a0a0;">
+        A collaborative project exploring the intersection of mathematics, computer graphics, and interactive web design.
+      </p>
+    </div>
+
+    <div class="content-section">
+      <h3>Technical Stack</h3>
+      <ul>
+        <li><strong>Three.js r128:</strong> 3D graphics library for WebGL rendering</li>
+        <li><strong>HTML5 Canvas API:</strong> Procedural texture generation with 2048×1024 resolution</li>
+        <li><strong>WebGL:</strong> Hardware-accelerated graphics processing</li>
+        <li><strong>Vanilla JavaScript (ES6+):</strong> All core functionality without external dependencies</li>
+        <li><strong>CSS3:</strong> Responsive design with animations and modern styling</li>
+        <li><strong>LocalStorage API:</strong> Client-side data persistence</li>
+      </ul>
+    </div>
+
+    <div class="content-section">
+      <h3>How It Works</h3>
+      <p>
+        When you create a planet, the application generates a unique procedural texture using a sophisticated noise algorithm. 
+        This texture is then mapped onto a 3D sphere geometry in Three.js and rendered in real-time. Each slider you adjust 
+        modifies parameters in this generation pipeline, creating instant visual feedback. Your completed planets can be saved 
+        to local storage, allowing you to build a personal collection of worlds.
+      </p>
+    </div>
+
+    <div class="content-section">
+      <h3>Performance</h3>
+      <ul>
+        <li><strong>60 FPS Target:</strong> Smooth animation and interaction</li>
+        <li><strong>2048×1024 Textures:</strong> High-resolution procedural planets</li>
+        <li><strong>50ms Debounce:</strong> Optimized texture regeneration prevents lag when dragging sliders</li>
+        <li><strong>Cross-Browser:</strong> Chrome, Firefox, Safari, Edge (latest versions)</li>
+      </ul>
+    </div>
+
+    <div class="content-section">
+      <h3>Future Enhancements</h3>
+      <p>
+        Planned features include procedural moon generation, advanced atmospheric shader effects, climate simulation, 
+        displacement mapping for 3D terrain, orbital mechanics visualization, and export functionality for use in other 3D tools.
+      </p>
+    </div>
   </main>
+
+  <footer style="text-align: center; padding: 20px; color: #666; margin-top: 40px;">
+    Made with ❤️ by DK
+  </footer>
 
   <script src="Java.js"></script>
 </body>

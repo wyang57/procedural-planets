@@ -4,25 +4,644 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Procedural Planets</title>
-  <link rel="stylesheet" href="styles/styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url("Images/space.jpg");
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: aliceblue;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Animated overlay for depth */
+    .space-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+    }
+    
+    /* Animated stars layer */
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+    
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 10px #00ffff; }
+      50% { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff; }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(10px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Header */
+    .top-bar {
+      position: relative;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-bottom: 2px solid #00ffff;
+      animation: slideIn 0.5s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .top-bar h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      animation: glow 2s ease-in-out infinite;
+    }
+    
+    .burger {
+      font-size: 24px;
+      background: none;
+      border: none;
+      color: #00ffff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .burger:hover {
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      transform: scale(1.1);
+    }
+    
+    .nav-links {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: rgba(0, 0, 0, 0.95);
+      border-left: 2px solid #00ffff;
+      border-bottom: 2px solid #00ffff;
+      display: flex;
+      flex-direction: row;
+      gap: 0;
+      padding: 0;
+      border-radius: 0 0 0 10px;
+      min-width: 300px;
+      z-index: 101;
+      animation: fadeIn 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .nav-links a {
+      color: aliceblue;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-right: 1px solid rgba(0, 255, 255, 0.3);
+      transition: all 0.3s ease;
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+    
+    .nav-links a:last-child {
+      border-right: none;
+    }
+    
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: #00ff00;
+      transition: width 0.3s;
+    }
+    
+    .nav-links a:hover {
+      background-color: rgba(0, 255, 255, 0.2);
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Main content */
+    main {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+    
+    /* Hero section with planet */
+    .hero {
+      text-align: center;
+      margin-bottom: 80px;
+      animation: fadeIn 0.8s ease;
+    }
+    
+    .planet-display {
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 40px;
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 40px rgba(0, 136, 255, 0.5));
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    .planet {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #4fc3f7, #0288d1, #01579b);
+      box-shadow: 
+        inset -40px -40px 80px rgba(0, 0, 0, 0.4),
+        0 0 60px rgba(0, 136, 255, 0.4);
+      position: relative;
+      overflow: hidden;
+      animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .planet::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.1) 45%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.1) 55%,
+        transparent 60%
+      );
+      animation: shine 3s infinite;
+    }
+    
+    @keyframes shine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    .planet-ring {
+      position: absolute;
+      width: 140%;
+      height: 30%;
+      border: 8px solid rgba(200, 150, 100, 0.6);
+      border-radius: 50%;
+      top: 35%;
+      left: -20%;
+      transform: rotateX(75deg);
+      box-shadow: 
+        inset 0 0 20px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(200, 150, 100, 0.3);
+    }
+    
+    .hero h2 {
+      font-size: 3.5em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #00ffff, #00ff00, #00ffff);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 3s ease infinite, fadeIn 1s ease;
+    }
+    
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    .tagline {
+      font-size: 1.3em;
+      color: #a0a0a0;
+      margin-bottom: 10px;
+      animation: fadeIn 1.2s ease;
+    }
+    
+    .subtitle {
+      font-size: 1em;
+      color: #888;
+      max-width: 600px;
+      margin: 0 auto;
+      animation: fadeIn 1.4s ease;
+    }
+    
+    /* Category cards */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-bottom: 60px;
+    }
+    
+    .category-box {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 35px 25px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.6s ease;
+    }
+    
+    .category-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .category-box:hover::before {
+      left: 100%;
+    }
+    
+    .category-box:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+      border-color: #00ff00;
+    }
+    
+    .category-box a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .category-icon {
+      font-size: 4em;
+      margin-bottom: 20px;
+      display: inline-block;
+      animation: bounce 2s infinite;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .category-box:hover .category-icon {
+      animation: spin 0.6s ease;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg) scale(1); }
+      to { transform: rotate(360deg) scale(1.2); }
+    }
+    
+    .category-title {
+      color: #00ffff;
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .category-description {
+      color: #b0b0b0;
+      font-size: 0.95em;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .category-button {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #00ffff, #00ff00);
+      color: #000;
+      border-radius: 25px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.85em;
+      letter-spacing: 1.5px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
+    }
+    
+    .category-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(0, 255, 0, 0.5);
+    }
+    
+    /* Features section */
+    .features-section {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid #00ffff;
+      border-radius: 10px;
+      padding: 40px;
+      animation: fadeIn 0.8s ease;
+    }
+    
+    .features-section h3 {
+      color: #00ffff;
+      font-size: 2em;
+      margin-bottom: 30px;
+      text-align: center;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    
+    .features-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+    }
+    
+    .feature-item {
+      display: flex;
+      gap: 15px;
+      padding: 20px;
+      background: rgba(0, 255, 0, 0.05);
+      border-left: 4px solid #00ff00;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    
+    .feature-item:hover {
+      background: rgba(0, 255, 0, 0.1);
+      transform: translateX(5px);
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    }
+    
+    .feature-icon {
+      color: #00ff00;
+      font-size: 2em;
+      flex-shrink: 0;
+    }
+    
+    .feature-text {
+      color: #e0e0e0;
+      text-align: left;
+    }
+    
+    .feature-text strong {
+      color: #00ffff;
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    /* Footer */
+    footer {
+      background: rgba(0, 0, 0, 0.9);
+      border-top: 2px solid rgba(0, 255, 255, 0.3);
+      padding: 25px 20px;
+      text-align: center;
+      color: #666;
+      font-size: 0.95em;
+      margin-top: 60px;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 2;
+    }
+    
+    footer:hover {
+      border-top-color: #00ffff;
+      color: #888;
+    }
+    
+    footer::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00ffff, transparent);
+      margin: 0 auto 10px;
+    }
+    
+    @media (max-width: 768px) {
+      .top-bar h1 {
+        font-size: 18px;
+      }
+      
+      .hero h2 {
+        font-size: 2.2em;
+      }
+      
+      .planet-display {
+        width: 200px;
+        height: 200px;
+      }
+      
+      .category-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .nav-links {
+        flex-direction: column;
+        min-width: auto;
+      }
+      
+      .nav-links a {
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+      }
+      
+      .nav-links a:last-child {
+        border-bottom: none;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- Space overlay -->
+  <div class="space-overlay"></div>
+  
+  <!-- Animated stars -->
+  <div class="stars" id="stars"></div>
+
   <header class="top-bar">
     <h1>Procedural Planets</h1>
-    <button class="burger">&#9776;</button>
-    <nav class="nav-links hidden">
+    <button class="burger" type="button" aria-expanded="false" aria-controls="site-nav">&#9776;</button>
+    <nav id="site-nav" class="nav-links hidden" role="navigation">
       <a href="index.html">Home</a>
       <a href="creator.html">Create Planet</a>
+      <a href="saved.html">Saved Planets</a>
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
     </nav>
   </header>
 
   <main>
-    <h2>Welcome to Procedural Planets</h2>
-    <p>Explore, create, and save your own worlds.</p>
+    <section class="hero">
+      <div class="planet-display">
+        <div class="planet">
+          <div class="planet-ring"></div>
+        </div>
+      </div>
+      <h2>🌍 Procedural Planets</h2>
+      <p class="tagline">Explore, create, and save your own worlds</p>
+      <p class="subtitle">Generate infinite varieties of planets using advanced procedural algorithms and interactive controls</p>
+    </section>
+
+    <section class="category-grid">
+      <div class="category-box">
+        <a href="creator.html">
+          <span class="category-icon">🎨</span>
+          <div class="category-title">Create Planet</div>
+          <div class="category-description">
+            Design your own unique planet with 8 interactive sliders controlling surface composition, oceans, ice caps, atmosphere, and more.
+          </div>
+          <span class="category-button">Start Creating</span>
+        </a>
+      </div>
+
+      <div class="category-box">
+        <a href="saved.html">
+          <span class="category-icon">💾</span>
+          <div class="category-title">Saved Planets</div>
+          <div class="category-description">
+            View your collection of created planets with beautiful previews. Download, delete, or study your creations.
+          </div>
+          <span class="category-button">View Gallery</span>
+        </a>
+      </div>
+
+      <div class="category-box">
+        <a href="about.html">
+          <span class="category-icon">ℹ️</span>
+          <div class="category-title">About Project</div>
+          <div class="category-description">
+            Learn about procedural generation, the technology behind this project, and the creative vision of the team.
+          </div>
+          <span class="category-button">Learn More</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <h3>✨ Key Features</h3>
+      <div class="features-list">
+        <div class="feature-item">
+          <span class="feature-icon">🎯</span>
+          <div class="feature-text">
+            <strong>Real-time Generation</strong>
+            See your planet update instantly as you adjust sliders
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🎨</span>
+          <div class="feature-text">
+            <strong>Color Customization</strong>
+            15+ color pickers to craft your perfect planetary palette
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">💾</span>
+          <div class="feature-text">
+            <strong>Persistent Storage</strong>
+            Save your creations to local storage with PNG previews
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔧</span>
+          <div class="feature-text">
+            <strong>8 Control Categories</strong>
+            Surface, oceans, ice, atmosphere, clouds, volcanoes, rings, terrain
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📱</span>
+          <div class="feature-text">
+            <strong>Mobile Responsive</strong>
+            Works perfectly on desktop, tablet, and mobile devices
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">⚡</span>
+          <div class="feature-text">
+            <strong>High Performance</strong>
+            Smooth 60 FPS rendering with advanced WebGL optimization
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-<script src="Java.js"></script>
+  <footer>
+    Made with ❤️ by DK
+  </footer>
+
+  <script>
+    // Generate animated starfield
+    const starsContainer = document.getElementById('stars');
+    for (let i = 0; i < 150; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 3 + 's';
+      star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+      starsContainer.appendChild(star);
+    }
+  </script>
+  <script src="Java.js"></script>
 </body>
 </html>
