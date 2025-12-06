@@ -156,98 +156,188 @@ function generatePlanetTexture() {
     ringColor: document.getElementById('ringColor').value
   };
   
-  // Generate base Perlin-like noise for realism
-  const noiseScale = (100 - roughness) / 50;
+  // Generate multi-octave noise for realistic continents
+  const noiseScale = (100 - roughness) / 30; // Better scale for variety
   const baseNoise = generatePerlinNoise(canvas.width, canvas.height, noiseScale);
   
-  // Base color - ocean
+  // ===== STEP 1: BASE OCEAN COLOR =====
   ctx.fillStyle = oceanColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Add continents with noise-based landmasses
-  ctx.fillStyle = rockColor;
-  for (let y = 0; y < canvas.height; y++) {
-    for (let x = 0; x < canvas.width; x += 4) {
-      const noiseValue = baseNoise[Math.floor(y / 2) * (canvas.width / 4) + Math.floor(x / 4)] || 0;
-      const threshold = (100 - surfaceDensity) / 100;
+  // ===== STEP 2: LAND/CONTINENT LAYER (surfaceDensity controls coverage) =====
+  const landThreshold = (100 - surfaceDensity) / 100; // Higher density = more land
+  const stepX = 4;
+  const stepY = 2;
+  
+  // Draw landmasses with varied rock colors based on height
+  for (let y = 0; y < canvas.height; y += stepY) {
+    for (let x = 0; x < canvas.width; x += stepX) {
+      const noiseIdx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+      const noiseValue = baseNoise[noiseIdx] || 0;
       
-      if (noiseValue > threshold) {
-        ctx.fillRect(x, y, 4, 1);
+      // If noise is above threshold, draw land
+      if (noiseValue > landThreshold) {
+        // Vary rock color slightly based on noise for more natural look
+        const brightness = Math.floor((noiseValue - landThreshold) * 80);
+        const rgb = hexToRgb(rockColor);
+        const r = Math.max(0, Math.min(255, rgb.r + brightness / 2));
+        const g = Math.max(0, Math.min(255, rgb.g + brightness / 2));
+        const b = Math.max(0, Math.min(255, rgb.b + brightness / 2));
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(x, y, stepX, stepY);
       }
     }
   }
   
-  // Add ice caps at poles (north and south)
-  const iceCoveragePixels = (canvas.height / 100) * (iceCoverage / 2);
-  ctx.fillStyle = iceColor;
-  ctx.globalAlpha = 0.9;
+  // ===== STEP 3: OCEAN DEPTH VARIATION (oceanCoverage affects depth coloring) =====
+  if (oceanCoverage > 30) {
+    // Darken deeper oceans
+    const oceanDarkness = (oceanCoverage - 30) / 70;
+    const oceanRgb = hexToRgb(oceanColor);
+    const darkOceanColor = `rgba(${Math.floor(oceanRgb.r * (1 - oceanDarkness * 0.3))},${Math.floor(oceanRgb.g * (1 - oceanDarkness * 0.3))},${Math.floor(oceanRgb.b * (1 - oceanDarkness * 0.5))},0.3)`;
+    
+    ctx.fillStyle = darkOceanColor;
+    for (let y = 0; y < canvas.height; y += stepY) {
+      for (let x = 0; x < canvas.width; x += stepX) {
+        const noiseIdx = Math.floor(y / stepY) * Math.ceil(canvas.width / stepX) + Math.floor(x / stepX);
+        const noiseValue = baseNoise[noiseIdx] || 0;
+        if (noiseValue <= landThreshold && Math.random() < oceanCoverage / 150) {
+          ctx.fillRect(x, y, stepX, stepY);
+        }
+      }
+    }
+  }
   
-  // North pole
-  const northGradient = ctx.createLinearGradient(0, 0, 0, iceCoveragePixels);
-  northGradient.addColorStop(0, iceColor);
-  northGradient.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = northGradient;
-  ctx.fillRect(0, 0, canvas.width, iceCoveragePixels);
+  // ===== STEP 4: ICE CAPS (latitude-based masking with gradient) =====
+  if (iceCoverage > 0) {
+    ctx.globalAlpha = (iceCoverage / 100) * 0.9;
+    ctx.fillStyle = iceColor;
+    
+    // Northern ice cap (pole at top)
+    const iceCoveragePixels = Math.floor((canvas.height / 100) * (iceCoverage * 1.2));
+    const northGradient = ctx.createLinearGradient(0, 0, 0, iceCoveragePixels);
+    northGradient.addColorStop(0, iceColor);
+    northGradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = northGradient;
+    ctx.fillRect(0, 0, canvas.width, iceCoveragePixels);
+    
+    // Southern ice cap (pole at bottom)
+    const southGradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - iceCoveragePixels);
+    southGradient.addColorStop(0, iceColor);
+    southGradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = southGradient;
+    ctx.fillRect(0, canvas.height - iceCoveragePixels, canvas.width, iceCoveragePixels);
+    
+    ctx.globalAlpha = 1.0;
+  }
   
-  // South pole
-  const southGradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - iceCoveragePixels);
-  southGradient.addColorStop(0, iceColor);
-  southGradient.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = southGradient;
-  ctx.fillRect(0, canvas.height - iceCoveragePixels, canvas.width, iceCoveragePixels);
-  
-  ctx.globalAlpha = 1.0;
-  
-  // Add volcanic regions with lava flows
+  // ===== STEP 5: VOLCANIC REGIONS (lava with emissive glow) =====
   if (volcanoCoverage > 0) {
-    ctx.fillStyle = lavaColor;
-    const volcanicRegions = Math.ceil((volcanoCoverage / 100) * 80);
-    for (let i = 0; i < volcanicRegions; i++) {
+    const volcanicSpots = Math.floor((volcanoCoverage / 100) * 100); // More volcanoes at high coverage
+    for (let i = 0; i < volcanicSpots; i++) {
       const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height;
-      const size = 15 + Math.random() * 35;
+      const y = (Math.random() * 0.6 + 0.2) * canvas.height; // Avoid poles
+      const size = 8 + Math.random() * 40;
       
-      // Draw volcanic spots with glow
+      // Radial gradient for lava glow
       const vgradient = ctx.createRadialGradient(x, y, 0, x, y, size);
       vgradient.addColorStop(0, lavaColor);
-      vgradient.addColorStop(0.7, 'rgba(255,69,0,0.5)');
+      vgradient.addColorStop(0.5, 'rgba(255,165,0,0.6)');
       vgradient.addColorStop(1, 'rgba(255,69,0,0)');
       ctx.fillStyle = vgradient;
       ctx.fillRect(x - size, y - size, size * 2, size * 2);
     }
   }
   
-  // Add clouds with wind patterns
+  // ===== STEP 6: CLOUDS LAYER (semi-transparent overlay with wind patterns) =====
   if (cloudCoverage > 0) {
+    ctx.globalAlpha = (cloudCoverage / 100) * 0.6;
     ctx.fillStyle = cloudColor;
-    ctx.globalAlpha = 0.5;
-    const cloudRegions = Math.ceil((cloudCoverage / 100) * 60);
-    for (let i = 0; i < cloudRegions; i++) {
-      const x = Math.random() * canvas.width;
+    const cloudCount = Math.floor((cloudCoverage / 100) * 80);
+    for (let i = 0; i < cloudCount; i++) {
+      const x = (Math.random() * 1.2 * canvas.width - canvas.width * 0.1) % canvas.width;
       const y = Math.random() * canvas.height;
-      const windOffset = (i * 10) % canvas.width;
-      drawCloud(ctx, (x + windOffset) % canvas.width, y, 25 + Math.random() * 60);
+      const size = 15 + Math.random() * 50;
+      drawCloud(ctx, x, y, size);
     }
     ctx.globalAlpha = 1.0;
   }
   
-  // Apply final noise for texture detail
+  // ===== STEP 7: TERRAIN ROUGHNESS (fine detail noise) =====
   if (roughness > 0) {
-    addNoise(ctx, canvas.width, canvas.height, roughness / 8);
+    addNoise(ctx, canvas.width, canvas.height, roughness / 6);
   }
   
   return canvas;
 }
 
-// Improved noise generation (simple Perlin-like)
+// Enhanced multi-octave Perlin-like noise generation for realistic terrain
 function generatePerlinNoise(width, height, scale) {
   const noise = [];
-  const frequency = 1 / scale;
+  const stepX = 4;
+  const stepY = 2;
+  const sampledWidth = Math.ceil(width / stepX);
+  const sampledHeight = Math.ceil(height / stepY);
   
-  for (let y = 0; y < height; y += 2) {
-    for (let x = 0; x < width; x += 4) {
-      const value = Math.sin(x * frequency * 0.01) * Math.cos(y * frequency * 0.01) * 0.5 + 0.5;
-      noise.push(value);
+  // Create gradient permutation table for better randomness
+  const gradients = [];
+  for (let i = 0; i < sampledWidth * sampledHeight; i++) {
+    gradients[i] = {
+      x: Math.cos(Math.random() * Math.PI * 2),
+      y: Math.sin(Math.random() * Math.PI * 2)
+    };
+  }
+  
+  // Multi-octave noise (Fractional Brownian Motion)
+  for (let y = 0; y < height; y += stepY) {
+    for (let x = 0; x < width; x += stepX) {
+      let value = 0;
+      let amplitude = 1;
+      let frequency = 1;
+      let maxValue = 0;
+      
+      // Layer 4 octaves of noise for natural variation
+      for (let octave = 0; octave < 4; octave++) {
+        const xi = Math.floor((x * frequency) / (stepX * scale)) % (sampledWidth - 1);
+        const yi = Math.floor((y * frequency) / (stepY * scale)) % (sampledHeight - 1);
+        
+        // Interpolate between gradient vectors
+        const xf = ((x * frequency) / (stepX * scale)) - Math.floor((x * frequency) / (stepX * scale));
+        const yf = ((y * frequency) / (stepY * scale)) - Math.floor((y * frequency) / (stepY * scale));
+        
+        // Smooth interpolation (Perlin smoothstep)
+        const u = xf * xf * (3 - 2 * xf);
+        const v = yf * yf * (3 - 2 * yf);
+        
+        // Get gradients and interpolate
+        const idx1 = yi * sampledWidth + xi;
+        const idx2 = yi * sampledWidth + ((xi + 1) % sampledWidth);
+        const idx3 = ((yi + 1) % sampledHeight) * sampledWidth + xi;
+        const idx4 = ((yi + 1) % sampledHeight) * sampledWidth + ((xi + 1) % sampledWidth);
+        
+        const g1 = gradients[idx1 % gradients.length];
+        const g2 = gradients[idx2 % gradients.length];
+        const g3 = gradients[idx3 % gradients.length];
+        const g4 = gradients[idx4 % gradients.length];
+        
+        // Dot products
+        const d1 = g1.x * xf + g1.y * yf;
+        const d2 = g2.x * (xf - 1) + g2.y * yf;
+        const d3 = g3.x * xf + g3.y * (yf - 1);
+        const d4 = g4.x * (xf - 1) + g4.y * (yf - 1);
+        
+        // Interpolate
+        const i1 = d1 * (1 - u) + d2 * u;
+        const i2 = d3 * (1 - u) + d4 * u;
+        const i = i1 * (1 - v) + i2 * v;
+        
+        value += i * amplitude;
+        maxValue += amplitude;
+        amplitude *= 0.5;
+        frequency *= 2;
+      }
+      
+      noise.push((value / maxValue + 1) / 2); // Normalize to 0-1
     }
   }
   
@@ -322,6 +412,14 @@ function hexToRgba(hex, alpha) {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Helper function to convert hex to RGB object
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return { r, g, b };
 }
 
 // Create planet rings
